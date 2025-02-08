@@ -1,0 +1,29 @@
+name: flutter_application_2
+
+description: A new Flutter project.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 0.0.1+1
+
+environment:
+  sdk: '3.6.1'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.13.6
+  english_words: ^4.0.0
+  provider: ^6.0.0
+  video_player: ^2.9.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  # devtools: ^2.3.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/result.png
