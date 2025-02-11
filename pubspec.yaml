@@ -17,6 +17,10 @@ dependencies:
   provider: ^6.0.0
   video_player: ^2.9.2
   carousel_slider: ^4.2.1
+  flutter_baidu_mapapi_map: ^3.9.0
+  flutter_baidu_mapapi_utils: ^3.9.0
+  flutter_baidu_mapapi_search: ^3.9.0
+  flutter_bmflocation: ^3.4.0
 
 dev_dependencies:
   flutter_test:

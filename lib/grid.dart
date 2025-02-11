@@ -43,38 +43,39 @@ class GridViewExample extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         return Card(
-          elevation: 5, // 卡片阴影
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10), // 圆角
-          ),
+            elevation: 5, // 卡片阴影
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10), // 圆角
+            ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 3, // 图片占 3 份
-                child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(30)),
-                    child: Container(
-                      color: Colors.grey[300],
-                      child: Image.network(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    flex: 3, // 图片占 3 份
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(30)),
+                      child:Container(
+                        color:Colors.grey[300], 
+                        child: Image.network(
                         items[index]['image']!,
                         fit: BoxFit.fitWidth, // 图片填充
                       ),
-                    )),
-              ),
-              Expanded(
-                flex: 1, // 文字占 1 份
-                child: Center(
-                  child: Text(
-                    items[index]['text']!,
-                    style: TextStyle(fontSize: 16),
+                      )
+                    ),
                   ),
-                ),
+                  Expanded(
+                    flex: 1, // 文字占 1 份
+                    child: Center(
+                      child: Text(
+                        items[index]['text']!,
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
+            );
       },
     );
   }
