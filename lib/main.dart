@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+// import 'package:sqflite_common_ffi_web/sqflite_common_ffi_web.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'database_helper.dart';
+import 'note.dart';
 
 void main() {
+  if (kIsWeb) {
+    // databaseFactory = databaseFactoryFfiWeb;
+  } else {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
   runApp(MyApp());
 }
 
@@ -8,74 +19,114 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '九宫格布局',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('九宫格布局示例'),
-        ),
-        body: GridViewExample(),
-      ),
+      home: NoteListPage(),
     );
   }
 }
 
-class GridViewExample extends StatelessWidget {
-  // 模拟数据
-  final List<Map<String, String>> items = List.generate(9, (index) {
-    return {
-      // 'image': 'https://picsum.photos/200/200?random=$index', // 随机图片
-      'image':
-          'https://edu-wenku.bdimg.com/v1/pc/aigc/union-index/wk-logo-1729092147280.png', // 随机图片
-      'text': 'Item ${index + 1}', // 文字内容
-    };
-  });
+class NoteListPage extends StatefulWidget {
+  @override
+  _NoteListPageState createState() => _NoteListPageState();
+}
+
+class _NoteListPageState extends State<NoteListPage> {
+  final DatabaseHelper dbHelper = DatabaseHelper();
+  List<Note> _notes = [];
 
   @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: EdgeInsets.all(25), // 内边距
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // 每行 3 个格子
-        crossAxisSpacing: 10, // 水平间距
-        mainAxisSpacing: 10, // 垂直间距
-        childAspectRatio: 0.8, // 宽高比
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        return Card(
-          elevation: 5, // 卡片阴影
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10), // 圆角
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+  void initState() {
+    super.initState();
+    _refreshNotes();
+  }
+
+  Future<void> _refreshNotes() async {
+    final notes = await dbHelper.getNotes();
+    setState(() {
+      _notes = notes;
+    });
+  }
+
+  Future<void> _showNoteDialog({Note? note}) async {
+    final titleController = TextEditingController(text: note?.title ?? '');
+    final contentController = TextEditingController(text: note?.content ?? '');
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(note == null ? '添加便签' : '编辑便签'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                flex: 3, // 图片占 3 份
-                child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(30)),
-                    child: Container(
-                      color: Colors.grey[300],
-                      child: Image.network(
-                        items[index]['image']!,
-                        fit: BoxFit.fitWidth, // 图片填充
-                      ),
-                    )),
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(labelText: '标题'),
               ),
-              Expanded(
-                flex: 1, // 文字占 1 份
-                child: Center(
-                  child: Text(
-                    items[index]['text']!,
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
+              TextField(
+                controller: contentController,
+                decoration: InputDecoration(labelText: '内容'),
               ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final newNote = Note(
+                  id: note?.id,
+                  title: titleController.text,
+                  content: contentController.text,
+                );
+                if (note == null) {
+                  await dbHelper.insertNote(newNote);
+                } else {
+                  await dbHelper.updateNote(newNote);
+                }
+                _refreshNotes();
+                Navigator.of(context).pop();
+              },
+              child: Text(note == null ? '添加' : '更新'),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('便签列表')),
+      body: ListView.builder(
+        itemCount: _notes.length,
+        itemBuilder: (context, index) => ListTile(
+          title: Text(_notes[index].title),
+          subtitle: Text(_notes[index].content),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () => _showNoteDialog(note: _notes[index]),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () async {
+                  await dbHelper.deleteNote(_notes[index].id!);
+                  _refreshNotes();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () => _showNoteDialog(),
+      ),
     );
   }
 }
